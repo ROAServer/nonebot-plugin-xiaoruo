@@ -5,6 +5,7 @@ from loguru import logger
 from openai import OpenAI
 
 from . import config
+from .Constants import SYSTEM_PROMPT
 from .FunctionManager import functions
 
 
@@ -16,7 +17,7 @@ class LLMClient(object):
         )
 
     def get_system_prompt(self):
-        return config.system_prompt
+        return SYSTEM_PROMPT
 
     def get_context(self) -> List[Dict[str, str]]:
         return [
