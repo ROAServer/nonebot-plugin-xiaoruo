@@ -57,7 +57,7 @@ server_access = OMMSServerAccess(config.omms_server_http_address, config.omms_ap
 from .ContextAwareLLMClient import ContextAwareLLMClient
 from .UserContext import UserContext
 
-chat = on_message(rule=to_me())
+chat = on_message()
 
 group_llms = {}
 private_llms = {}
