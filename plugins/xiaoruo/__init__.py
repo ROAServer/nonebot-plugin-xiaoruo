@@ -13,7 +13,7 @@ from pydantic import ValidationError
 from .Config import Config
 from .OMMSServerAccess import OMMSServerAccess
 from .TomlMultiLineStringEncoder import TomlMultiLineStringEncoder
-from .UserContext import UserContext
+
 
 __plugin_meta = PluginMetadata(
     name="xiaoruo",
@@ -54,6 +54,7 @@ save_config(config)
 server_access = OMMSServerAccess(config.omms_server_http_address, config.omms_api_key)
 
 from .ContextAwareLLMClient import ContextAwareLLMClient
+from .UserContext import UserContext
 
 chat = on_message()
 
