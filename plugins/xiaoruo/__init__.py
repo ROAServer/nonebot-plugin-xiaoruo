@@ -13,6 +13,7 @@ from pydantic import ValidationError
 from .Config import Config
 from .OMMSServerAccess import OMMSServerAccess
 from .TomlMultiLineStringEncoder import TomlMultiLineStringEncoder
+from .UserContext import UserContext
 
 __plugin_meta = PluginMetadata(
     name="xiaoruo",
@@ -84,7 +85,10 @@ async def handle_chat_group(bot: Bot, event: GroupMessageEvent):
     if text.startswith("xiaoruo") or text.startswith("小若"):
         text = text.replace("xiaoruo", "").replace("小若", "")
         try:
-            if message := await current_llm.chat(f"{{用户id:{event.user_id},用户称呼：{event.sender.nickname}}}" + text):
+            if message := await current_llm.chat(
+                    UserContext(event.user_id, event.sender.nickname),
+                    f"{{用户id:{event.user_id},用户称呼：{event.sender.nickname}}}" + text
+            ):
                 await chat.finish(message)
         except RateLimitError as e:
             await chat.finish("Rate limit exceeded.")
@@ -100,7 +104,10 @@ async def handle_chat_private(bot: Bot, event: PrivateMessageEvent):
         await chat.finish("Cleared command context for this group.")
         return
     try:
-        if message := await current_llm.chat(f"{{用户id:{event.user_id},用户称呼：{event.sender.nickname}}}" + text):
+        if message := await current_llm.chat(
+                UserContext(event.user_id, event.sender.nickname),
+                f"{{用户id:{event.user_id},用户称呼：{event.sender.nickname}}}" + text
+        ):
             await chat.finish(message)
     except RateLimitError as e:
         await chat.finish("Rate limit exceeded.")

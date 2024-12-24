@@ -3,6 +3,7 @@ from typing import Any
 from loguru import logger
 
 from . import config, server_access
+from .UserContext import UserContext
 
 
 async def _whitelist_operation_impl(action: str, whitelist_name: str, player_name: str, scene_id: str, username: str):
@@ -39,6 +40,13 @@ class FunctionManager:
         "whitelist_list": _whitelist_list_impl,
         "check_operator": _check_operator_impl,
         "check_available_scene": _check_available_scene
+    }
+
+    __permission_required = {
+        "whitelist_operation": True,
+        "whitelist_list": True,
+        "check_operator": False,
+        "check_available_scene": False
     }
 
     __tools = [
@@ -154,7 +162,9 @@ class FunctionManager:
         pass
 
     @logger.catch(level='ERROR', reraise=True)
-    async def invoke(self, name: str, **kwargs) -> Any:
+    async def invoke(self, user_context: UserContext, name: str, **kwargs) -> Any:
+        if self.__permission_required[name] and user_context.user_id in [str(e) for e in config.ops]:
+            return "permission_denied"
         return await self.__all[name](**kwargs)
 
     @property

@@ -7,6 +7,7 @@ from openai import OpenAI
 from . import config
 from .Constants import SYSTEM_PROMPT
 from .FunctionManager import functions
+from .UserContext import UserContext
 
 
 class LLMClient(object):
@@ -27,7 +28,7 @@ class LLMClient(object):
             }
         ]
 
-    async def chat(self, input: str) -> Optional[str]:
+    async def chat(self, user_ctx: UserContext, input: str) -> Optional[str]:
         logger.info(f"LLMClient.chat({input})")
         context = self.get_context()
         logger.debug(f"Context: {context}")
@@ -58,7 +59,7 @@ class LLMClient(object):
                         tool_call.function.arguments
                     )
                     try:
-                        tool_result = await functions().invoke(tool_call_name, **tool_call_arguments)
+                        tool_result = await functions().invoke(user_ctx, tool_call_name, **tool_call_arguments)
                         context.append({
                             "role": "tool",
                             "tool_call_id": tool_call.id,
