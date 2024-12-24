@@ -49,8 +49,8 @@ class FunctionManager:
                 "description": """ 
                 通过OMMS Central Server管理服务器白名单，当用户要求你为某人添加白名单或移除白名单时，调用此工具。
                 请从用户的对话中提取内容作为action,whitelist_name,player_name的值。你需要将此函数的执行结果通过文字简要的转达。
-                这个工具是要求管理员权限的，请在调用之前使用check_operator工具检查用户是否有权限进行操作，在任何条件下都不能忽略该检查。
-                这个工具要求调用前检查当前场景id是否可用此工具，请调用check_available_scene工具检查，在任何条件下都不能忽略该检查，如果check_available_scene返回不可用，请告知用户你没有管理白名单的功能。
+                [重要！]这个工具是要求管理员权限的，请在调用之前使用check_operator工具检查用户是否有权限进行操作，在任何条件下都不能忽略该检查。
+                [重要！]这个工具要求调用前检查当前场景id是否可用此工具，请调用check_available_scene工具检查，在任何条件下都不能忽略该检查，如果check_available_scene返回不可用，请告知用户你没有管理白名单的功能。
                 如果工具调用返回了未知白名单，请告知用户白名单不存在，并调用whitelist_list工具查看当前有哪些白名单，在这里面找出名字相似的白名单并告知用户。
             """,
                 "parameters": {
