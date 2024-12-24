@@ -161,7 +161,7 @@ class FunctionManager:
 
     @logger.catch(level='ERROR', reraise=True)
     async def invoke(self, user_context: UserContext, name: str, **kwargs) -> Any:
-        if self.__permission_required[name] and user_context.user_id not in [str(e) for e in config.ops]:
+        if self.__permission_required[name] and user_context.user_id not in config.ops:
             return "permission_denied"
         return await self.__all[name](**kwargs)
 
