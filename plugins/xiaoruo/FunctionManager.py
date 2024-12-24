@@ -63,7 +63,7 @@ class FunctionManager:
                 """,
                 "parameters": {
                     "type": "object",
-                    "required": ["action", "whitelist_name", "player_name"],
+                    "required": ["action", "whitelist_name", "player_name", "scene_id", "user_id"],
                     "properties": {
                         "action": {
                             "type": "string",
@@ -111,7 +111,7 @@ class FunctionManager:
                     "type": "object",
                     "required": ["user_id"],
                     "properties": {
-                        "username": {
+                        "user_id": {
                             "type": "string",
                             "description": """用户的用户id，会在每条消息中告知，请自行提取"""
                         }
