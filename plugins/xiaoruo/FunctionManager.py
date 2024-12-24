@@ -141,9 +141,7 @@ class FunctionManager:
             "type": "function",
             "function": {
                 "name": "check_available_scene",
-                "description": """ 
-检查当前场景是否可以使用要求管理员权限的工具，如果可以使用返回True，否则返回False；如果返回False，请告知用户你没有对应的那项要求管理员权限的功能。
-                    """,
+                "description": """ 检查当前场景是否可以使用要求管理员权限的工具，如果可以使用返回True，否则返回False；如果返回False，请告知用户你没有对应的那项要求管理员权限的功能。""",
                 "parameters": {
                     "type": "object",
                     "required": ["scene_id"],
@@ -163,7 +161,7 @@ class FunctionManager:
 
     @logger.catch(level='ERROR', reraise=True)
     async def invoke(self, user_context: UserContext, name: str, **kwargs) -> Any:
-        if self.__permission_required[name] and user_context.user_id in [str(e) for e in config.ops]:
+        if self.__permission_required[name] and user_context.user_id not in [str(e) for e in config.ops]:
             return "permission_denied"
         return await self.__all[name](**kwargs)
 
