@@ -12,7 +12,7 @@ class OMMSServerAccess:
 
     # 使用aiohttp对服务器发送请求并接受回复
     @logger.catch(level='ERROR', reraise=True)
-    async def request(self, endpoint: str, method: str, data: Optional[dict] = None) -> tuple[int, None] | tuple[int, Any]:
+    async def request(self, endpoint: str, method: str, data: Optional[dict] = None) -> tuple[int, Any]:
         auth = base64.b64encode(f'xiaoruo:{self.api_key}'.encode()).decode()
         async with aiohttp.ClientSession() as session:
             async with session.request(
