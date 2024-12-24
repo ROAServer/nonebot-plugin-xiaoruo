@@ -7,6 +7,7 @@ from loguru import logger
 from nonebot import Bot, on_message
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, PrivateMessageEvent
 from nonebot.plugin import PluginMetadata
+from nonebot.rule import to_me
 from openai import RateLimitError
 from pydantic import ValidationError
 
@@ -56,7 +57,7 @@ server_access = OMMSServerAccess(config.omms_server_http_address, config.omms_ap
 from .ContextAwareLLMClient import ContextAwareLLMClient
 from .UserContext import UserContext
 
-chat = on_message()
+chat = on_message(rule=to_me())
 
 group_llms = {}
 private_llms = {}
