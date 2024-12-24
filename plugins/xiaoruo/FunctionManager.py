@@ -104,6 +104,8 @@ class FunctionManager:
                 "name": "whitelist_list",
                 "description": """
                 获取所有可以被操作的白名单列表，如果用户要求你列出所有白名单，请调用此工具。
+                这个工具是要求管理员权限的，请在调用之前使用check_operator工具检查用户是否有权限进行操作。
+                这个工具要求调用前检查当前场景id是否可用此工具，请调用check_available_scene工具检查，如果check_available_scene返回不可用，请告知用户你没有管理白名单的功能。
                 """,
                 "parameters": {
                     "type": "object",
