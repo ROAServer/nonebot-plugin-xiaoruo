@@ -62,13 +62,13 @@ private_llms = {}
 
 def get_group_llm(group_id: int):
     if group_id not in group_llms:
-        group_llms[group_id] = ContextAwareLLMClient()
+        group_llms[group_id] = ContextAwareLLMClient(group_id=group_id)
     return group_llms[group_id]
 
 
 def get_private_llm(user_id: int):
     if user_id not in private_llms:
-        private_llms[user_id] = ContextAwareLLMClient()
+        private_llms[user_id] = ContextAwareLLMClient(group_id=user_id)
     return private_llms[user_id]
 
 
@@ -76,8 +76,6 @@ def get_private_llm(user_id: int):
 async def handle_chat_group(bot: Bot, event: GroupMessageEvent):
     text = event.get_message().extract_plain_text()
     logger.info(f"Group[{event.group_id}] message from ({event.sender.nickname},{event.sender.user_id}): " + text)
-    if event.group_id not in config.valid_groups:
-        return
     current_llm = get_group_llm(event.group_id)
     if text.endswith("/ruo-clear") and event.sender.user_id in config.ops:
         current_llm.clear()

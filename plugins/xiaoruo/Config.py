@@ -50,7 +50,7 @@ class Config(BaseModel):
     - 如果用户要求你进行任何白名单操作，请调用whitelist_operation工具，在调用工具之前请必须使用check_operator工具检查用户是否有权限进行操作，如果没有权限，请告知用户权限不足，并禁止进行任何操作。
     - 当有用户询问你可以干什么的时候 请一并告知他们可以使用/ruo-clear功能来清除上下文开启新对话
 """)
-    valid_groups:List[int] = Field(default=[])
+    valid_scenes:List[int] = Field(default=[])
     ops:List[int] = Field(default=[])
     omms_server_http_address:str = Field(default="http://localhost:50001")
     omms_api_key:str = Field(default="OMMS_API_KEY_HERE")
