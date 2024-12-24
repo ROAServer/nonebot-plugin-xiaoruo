@@ -26,7 +26,7 @@ class LLMClient(object):
             }
         ]
 
-    def chat(self, input: str) -> Optional[str]:
+    async def chat(self, input: str) -> Optional[str]:
         logger.info(f"LLMClient.chat({input})")
         context = self.get_context()
         logger.debug(f"Context: {context}")
@@ -40,7 +40,7 @@ class LLMClient(object):
         completion = None
         while finish_reason is None or finish_reason == "tool_calls":
             completion = self.client.chat.completions.create(
-                model="moonshot-v1-8k",
+                model=config.model,
                 messages=context,
                 temperature=0.3,
                 tools=functions().tools
@@ -57,7 +57,7 @@ class LLMClient(object):
                         tool_call.function.arguments
                     )
                     try:
-                        tool_result = functions().invoke(tool_call_name, **tool_call_arguments)
+                        tool_result = await functions().invoke(tool_call_name, **tool_call_arguments)
                         context.append({
                             "role": "tool",
                             "tool_call_id": tool_call.id,

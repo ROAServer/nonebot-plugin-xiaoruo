@@ -4,16 +4,15 @@ import shutil
 
 import toml
 from loguru import logger
-from nonebot import Bot
-from nonebot import on_message, on_command
+from nonebot import Bot, on_message
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, PrivateMessageEvent
-from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
-from nonebot.rule import to_me
 from openai import RateLimitError
 from pydantic import ValidationError
 
 from .Config import Config
+from .OMMSServerAccess import OMMSServerAccess
+from .TomlMultiLineStringEncoder import TomlMultiLineStringEncoder
 
 __plugin_meta = PluginMetadata(
     name="xiaoruo",
@@ -34,7 +33,6 @@ def load_config(file_path: str = 'xiaoruo.toml'):
             data = toml.load(file)
             return Config.model_validate(data)
     except (json.JSONDecodeError, TypeError, ValueError, ValidationError) as e:
-        # 处理 JSON 解析错误或其他相关错误
         logger.error("Load config failed." + str(e))
         backup_path = f"{file_path}.backup"
         logger.info(f"Creating backup for invalid config: {backup_path}")
@@ -46,11 +44,13 @@ def load_config(file_path: str = 'xiaoruo.toml'):
 
 def save_config(config: Config, file_path: str = 'xiaoruo.toml'):
     with open(file_path, 'w', encoding="utf-8") as file:
-        toml.dump(config.model_dump(), file)
+        file.write(toml.dumps(config.model_dump(), encoder=TomlMultiLineStringEncoder()))
 
 
 config = load_config()
 logger.info("Config loaded: " + str(config))
+save_config(config)
+server_access = OMMSServerAccess(config.omms_server_http_address, config.omms_api_key)
 
 from .ContextAwareLLMClient import ContextAwareLLMClient
 
@@ -86,7 +86,7 @@ async def handle_chat_group(bot: Bot, event: GroupMessageEvent):
     if text.startswith("xiaoruo") or text.startswith("小若"):
         text = text.replace("xiaoruo", "").replace("小若", "")
         try:
-            if message := current_llm.chat(f"{{用户id:{event.user_id},用户称呼：{event.sender.nickname}}}" + text):
+            if message := await current_llm.chat(f"{{用户id:{event.user_id},用户称呼：{event.sender.nickname}}}" + text):
                 await chat.finish(message)
         except RateLimitError as e:
             await chat.finish("Rate limit exceeded.")
@@ -102,7 +102,7 @@ async def handle_chat_private(bot: Bot, event: PrivateMessageEvent):
         await chat.finish("Cleared command context for this group.")
         return
     try:
-        if message := current_llm.chat(f"{{用户id:{event.user_id},用户称呼：{event.sender.nickname}}}" + text):
+        if message := await current_llm.chat(f"{{用户id:{event.user_id},用户称呼：{event.sender.nickname}}}" + text):
             await chat.finish(message)
     except RateLimitError as e:
         await chat.finish("Rate limit exceeded.")
