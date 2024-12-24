@@ -1,20 +1,17 @@
-import json
-import os
-import shutil
-
-import toml
 from loguru import logger
-from nonebot import Bot, on_message
+from nonebot import Bot, on_message, on_command
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, PrivateMessageEvent
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
-from openai import RateLimitError
-from pydantic import ValidationError
 
-from .Config import Config
+from .ChatEnvType import ChatEnvType
+from .CommandHandler import handle_command
+from .LLMChatHandler import handle_llm_chat
+from .LLMClientHolder import LLMClientHolder
 from .OMMSServerAccess import OMMSServerAccess
-from .TomlMultiLineStringEncoder import TomlMultiLineStringEncoder
-
+from .config import config, load_config, save_config
+from .ContextAwareLLMClient import ContextAwareLLMClient
+from .UserContext import UserContext
 
 __plugin_meta = PluginMetadata(
     name="xiaoruo",
@@ -23,93 +20,48 @@ __plugin_meta = PluginMetadata(
 )
 
 
-def load_config(file_path: str = 'xiaoruo.toml'):
-    if not os.path.exists(file_path):
-        logger.info("Creating default config.")
-        c = Config()
-        save_config(c)
-        return c
-
-    try:
-        with open(file_path, 'r', encoding="utf-8") as file:
-            data = toml.load(file)
-            return Config.model_validate(data)
-    except (json.JSONDecodeError, TypeError, ValueError, ValidationError) as e:
-        logger.error("Load config failed." + str(e))
-        backup_path = f"{file_path}.backup"
-        logger.info(f"Creating backup for invalid config: {backup_path}")
-        shutil.copyfile(file_path, backup_path)
-        c = Config()
-        save_config(c)
-        return c
-
-
-def save_config(config: Config, file_path: str = 'xiaoruo.toml'):
-    with open(file_path, 'w', encoding="utf-8") as file:
-        file.write(toml.dumps(config.model_dump(), encoder=TomlMultiLineStringEncoder()))
-
-
-config = load_config()
-logger.info("Config loaded: " + str(config))
-save_config(config)
-server_access = OMMSServerAccess(config.omms_server_http_address, config.omms_api_key)
-
-from .ContextAwareLLMClient import ContextAwareLLMClient
-from .UserContext import UserContext
-
+command_ruo = on_command("ruo")
+chat_to_me = on_message(rule=to_me())
 chat = on_message()
 
-group_llms = {}
-private_llms = {}
+llm_client_holder = LLMClientHolder()
 
 
-def get_group_llm(group_id: int):
-    if group_id not in group_llms:
-        group_llms[group_id] = ContextAwareLLMClient(group_id=group_id)
-    return group_llms[group_id]
+@command_ruo.handle()
+async def handle_chat_command_group(bot: Bot, event: GroupMessageEvent):
+    await handle_command(bot, ChatEnvType.group, event, command_ruo, llm_client_holder)
 
 
-def get_private_llm(user_id: int):
-    if user_id not in private_llms:
-        private_llms[user_id] = ContextAwareLLMClient(group_id=user_id)
-    return private_llms[user_id]
+@chat_to_me.handle()
+async def handle_chat_to_me(bot: Bot, event: GroupMessageEvent):
+    text = event.get_message().extract_plain_text().lstrip()
+    if text.startswith(config.command_prompt):
+        await handle_command(bot, ChatEnvType.group, event, chat_to_me, llm_client_holder)
+    else:
+        await handle_llm_chat(bot, ChatEnvType.group, event, chat_to_me, llm_client_holder)
 
 
 @chat.handle()
 async def handle_chat_group(bot: Bot, event: GroupMessageEvent):
-    text = event.get_message().extract_plain_text()
-    logger.info(f"Group[{event.group_id}] message from ({event.sender.nickname},{event.sender.user_id}): " + text)
-    current_llm = get_group_llm(event.group_id)
-    if text.endswith("/ruo-clear") and event.sender.user_id in config.ops:
-        current_llm.clear()
-        await chat.finish("Cleared command context for this group.")
-        return
-    if text.startswith("xiaoruo") or text.startswith("小若"):
-        text = text.replace("xiaoruo", "").replace("小若", "")
-        try:
-            if message := await current_llm.chat(
-                    UserContext(event.user_id, event.sender.nickname),
-                    f"{{用户id:{event.user_id},用户称呼：{event.sender.nickname}}}" + text
-            ):
-                await chat.finish(message)
-        except RateLimitError as e:
-            await chat.finish("Rate limit exceeded.")
+    text = event.get_message().extract_plain_text().lstrip()
+    if text.startswith(config.command_prompt):
+        await handle_command(bot, ChatEnvType.group, event, chat, llm_client_holder)
+    elif text.startswith("xiaoruo") or text.startswith("小若"):
+        await handle_llm_chat(bot, ChatEnvType.group, event, chat, llm_client_holder)
+    else:
+        logger.info(f"Group[{event.group_id}] message({event.message_id}) from ({event.sender.nickname},{event.sender.user_id}) unhandled: " + text)
+
+
+@command_ruo.handle()
+async def handle_chat_command_private(bot: Bot, event: PrivateMessageEvent):
+    await handle_command(bot, ChatEnvType.private, event, command_ruo, llm_client_holder)
 
 
 @chat.handle()
 async def handle_chat_private(bot: Bot, event: PrivateMessageEvent):
-    current_llm = get_private_llm(event.user_id)
     text = event.get_message().extract_plain_text()
-    logger.info(f"Private message from ({event.sender.nickname},{event.sender.user_id}): " + text)
-    if text.endswith("/ruo-clear"):
-        current_llm.clear()
-        await chat.finish("Cleared command context for this group.")
-        return
-    try:
-        if message := await current_llm.chat(
-                UserContext(event.user_id, event.sender.nickname),
-                f"{{用户id:{event.user_id},用户称呼：{event.sender.nickname}}}" + text
-        ):
-            await chat.finish(message)
-    except RateLimitError as e:
-        await chat.finish("Rate limit exceeded.")
+    logger.info(f"Private[{event.sender.user_id}({event.sender.nickname})] message({event.message_id}): " + text)
+    if text.startswith(config.command_prompt):
+        await handle_command(bot, ChatEnvType.private, event, chat, llm_client_holder)
+    else:
+        await handle_llm_chat(bot, ChatEnvType.private, event, chat, llm_client_holder)

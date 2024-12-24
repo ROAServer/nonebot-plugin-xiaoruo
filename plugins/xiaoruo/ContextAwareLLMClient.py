@@ -1,13 +1,7 @@
-from datetime import datetime
 from typing import List, Dict
 
 from .LLMClient import LLMClient
-
-
-def _get_current_time():
-    now = datetime.now()
-    current_time = now.strftime("%Y-%m-%d %H:%M:%S")
-    return current_time
+from .utils import get_current_time
 
 
 class ContextAwareLLMClient(LLMClient):
@@ -20,7 +14,7 @@ class ContextAwareLLMClient(LLMClient):
         return self.context
 
     def get_system_prompt(self):
-        return f"""当前时间：{_get_current_time()}，当前场景id：{self.group_id}
+        return f"""当前时间：{get_current_time()}，当前场景id：{self.group_id}
 
 {super().get_system_prompt()}
         """

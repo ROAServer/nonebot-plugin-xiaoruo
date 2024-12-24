@@ -4,7 +4,7 @@ from typing import Optional, List, Dict
 from loguru import logger
 from openai import OpenAI
 
-from . import config
+from .config import config
 from .Constants import SYSTEM_PROMPT
 from .FunctionManager import functions
 from .UserContext import UserContext

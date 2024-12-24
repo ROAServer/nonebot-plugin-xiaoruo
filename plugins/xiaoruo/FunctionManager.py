@@ -2,8 +2,11 @@ from typing import Any
 
 from loguru import logger
 
-from . import config, server_access
+from .OMMSServerAccess import OMMSServerAccess
 from .UserContext import UserContext
+from .config import config
+
+server_access = OMMSServerAccess(config.omms_server_http_address, config.omms_api_key)
 
 
 async def _whitelist_operation_impl(action: str, whitelist_name: str, player_name: str, scene_id: str, user_id: str):
