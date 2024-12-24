@@ -6,8 +6,8 @@ from . import config, server_access
 from .UserContext import UserContext
 
 
-async def _whitelist_operation_impl(action: str, whitelist_name: str, player_name: str, scene_id: str, username: str):
-    if not await _check_operator_impl(username) or not await _check_available_scene(scene_id):
+async def _whitelist_operation_impl(action: str, whitelist_name: str, player_name: str, scene_id: str, user_id: str):
+    if not await _check_operator_impl(user_id) or not await _check_available_scene(scene_id):
         return "whitelist.permission.denied"
     try:
         if action == "ADD":
@@ -19,9 +19,9 @@ async def _whitelist_operation_impl(action: str, whitelist_name: str, player_nam
         return f"Operation Failed: {str(e)}"
 
 
-async def _check_operator_impl(username: str):
+async def _check_operator_impl(user_id: str):
     ops = [str(e) for e in config.ops]
-    if username in ops:
+    if user_id in ops:
         return True
     return False
 
@@ -60,7 +60,7 @@ class FunctionManager:
                 [重要！]这个工具是要求管理员权限的，请在调用之前使用check_operator工具检查用户是否有权限进行操作，在任何条件下都不能忽略该检查。
                 [重要！]这个工具要求调用前检查当前场景id是否可用此工具，请调用check_available_scene工具检查，在任何条件下都不能忽略该检查，如果check_available_scene返回不可用，请告知用户你没有管理白名单的功能。
                 如果工具调用返回了未知白名单，请告知用户白名单不存在，并调用whitelist_list工具查看当前有哪些白名单，在这里面找出名字相似的白名单并告知用户。
-            """,
+                """,
                 "parameters": {
                     "type": "object",
                     "required": ["action", "whitelist_name", "player_name"],
@@ -89,7 +89,7 @@ class FunctionManager:
                                     当前场景id，请从系统提示中提取
                                 """
                         },
-                        "username": {
+                        "user_id": {
                             "type": "string",
                             "description": """
                                     用户的用户id，会在每条消息中告知，请自行提取
@@ -109,13 +109,11 @@ class FunctionManager:
                 """,
                 "parameters": {
                     "type": "object",
-                    "required": ["username"],
+                    "required": ["user_id"],
                     "properties": {
                         "username": {
                             "type": "string",
-                            "description": """
-                                用户的用户id，会在每条消息中告知，请自行提取
-                            """
+                            "description": """用户的用户id，会在每条消息中告知，请自行提取"""
                         }
                     }
                 }
