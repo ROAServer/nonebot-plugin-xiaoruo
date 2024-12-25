@@ -5,6 +5,7 @@ from nonebot import Bot
 from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.internal.matcher import Matcher
 
+from .config import config
 from .ChatEnvType import ChatEnvType
 from .LLMClientHolder import LLMClientHolder
 
@@ -28,18 +29,26 @@ async def handle_command(
 
     command = text.split(' ')
 
-    command.pop(0)
+    if command.pop(0).removeprefix('/') != config.command_root: return
 
-    if len(command) != 0 and command[0] == "clear":
+    if len(command) == 0:
+        return
+    elif command[0] in ["help", "?", "？"]:
+        await chat.finish(
+            f"Command list:\n"
+            f"/{config.command_root} clear: Clear llm context."
+        )
+    # end: help
+    elif command[0] == "clear":
         command.pop(0)
         if len(command) == 0:
             current_llm.clear()
             if env == ChatEnvType.group:
-                logger.info(f"Group[{event.group_id}]: Cleared llm context for group on command, by ({event.sender.nickname},{event.sender.user_id}).")
+                logger.info(f"Group[{event.group_id}] Cleared llm context for group on command, by ({event.sender.nickname},{event.sender.user_id}).")
             elif env == ChatEnvType.private:
-                logger.info(f"Private[{event.sender.user_id}({event.sender.nickname})]: Cleared llm context for private on command.")
+                logger.info(f"Private[{event.sender.user_id}({event.sender.nickname})] Cleared llm context for private on command.")
 
             await chat.finish("Cleared command context.")
         else:
-            await chat.finish("Invalid command arguments: command 'ruo-clear' does not accept any arguments.'")
+            await chat.finish(f"Invalid command arguments: command '/{config.command_root} clear' does not accept any arguments.'")
     # end: ruo-clear

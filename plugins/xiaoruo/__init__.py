@@ -20,7 +20,7 @@ __plugin_meta = PluginMetadata(
 )
 
 
-command_ruo = on_command("ruo")
+command_ruo = on_command(config.command_root)
 chat_to_me = on_message(rule=to_me())
 chat = on_message()
 
@@ -35,7 +35,7 @@ async def handle_chat_command_group(bot: Bot, event: GroupMessageEvent):
 @chat_to_me.handle()
 async def handle_chat_to_me(bot: Bot, event: GroupMessageEvent):
     text = event.get_message().extract_plain_text().lstrip()
-    if text.startswith(config.command_prompt):
+    if text.startswith('/'):
         return # Ignore command message
     else:
         await handle_llm_chat(bot, ChatEnvType.group, event, chat_to_me, llm_client_holder)
@@ -44,7 +44,7 @@ async def handle_chat_to_me(bot: Bot, event: GroupMessageEvent):
 @chat.handle()
 async def handle_chat_group(bot: Bot, event: GroupMessageEvent):
     text = event.get_message().extract_plain_text().lstrip()
-    if text.startswith(config.command_prompt):
+    if text.startswith('/'):
         return # Ignore command message
     elif text.startswith("xiaoruo") or text.startswith("小若"):
         await handle_llm_chat(bot, ChatEnvType.group, event, chat, llm_client_holder)
@@ -61,7 +61,7 @@ async def handle_chat_command_private(bot: Bot, event: PrivateMessageEvent):
 async def handle_chat_private(bot: Bot, event: PrivateMessageEvent):
     text = event.get_message().extract_plain_text()
     logger.info(f"Private[{event.sender.user_id}({event.sender.nickname})] message({event.message_id}): " + text)
-    if text.startswith(config.command_prompt):
+    if text.startswith('/'):
         return # Ignore command message
     else:
         await handle_llm_chat(bot, ChatEnvType.private, event, chat, llm_client_holder)
