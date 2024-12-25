@@ -30,7 +30,7 @@ async def handle_command(
 
     command.pop(0)
 
-    if command[0] == "clear":
+    if len(command) != 0 and command[0] == "clear":
         command.pop(0)
         if len(command) == 0:
             current_llm.clear()
