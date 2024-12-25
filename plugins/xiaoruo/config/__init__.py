@@ -7,7 +7,7 @@ from loguru import logger
 from pydantic import ValidationError
 
 from .Config import Config
-from .TomlMultiLineStringEncoder import TomlMultiLineStringEncoder
+from ..utils.TomlMultiLineStringEncoder import TomlMultiLineStringEncoder
 
 
 def save_config(config_data: Config, file_path: str = 'xiaoruo.toml'):
