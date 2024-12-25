@@ -16,6 +16,7 @@ async def handle_command(
     chat: Type[Matcher],
     llm_client_holder: LLMClientHolder,
 ):
+    text = event.get_message().extract_plain_text().lstrip()
     if env == ChatEnvType.group:
         logger.info(f"Group[{event.group_id}] command message({event.message_id}) from ({event.sender.nickname},{event.sender.user_id}): " + text)
         current_llm = llm_client_holder.get_group_llm(event.group_id)
@@ -25,7 +26,7 @@ async def handle_command(
     else:
         raise ValueError(f"Invalid chat environment: {env}.")
 
-    command = event.get_message().extract_plain_text().split(' ')
+    command = text.split(' ')
 
     command.pop(0)
 
