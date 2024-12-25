@@ -11,3 +11,4 @@ class Config(BaseModel):
     ops: List[int] = Field(default=[])
     omms_server_http_address: str = Field(default="http://localhost:50001")
     omms_api_key: str = Field(default="OMMS_API_KEY_HERE")
+    command_prompt: str = Field(default="/ruo")
