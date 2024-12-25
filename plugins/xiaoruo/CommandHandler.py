@@ -43,5 +43,3 @@ async def handle_command(
         else:
             await chat.finish("Invalid command arguments: command 'ruo-clear' does not accept any arguments.'")
     # end: ruo-clear
-    else:
-        await chat.finish("Invalid command.")
