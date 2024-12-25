@@ -36,7 +36,7 @@ async def handle_chat_command_group(bot: Bot, event: GroupMessageEvent):
 async def handle_chat_to_me(bot: Bot, event: GroupMessageEvent):
     text = event.get_message().extract_plain_text().lstrip()
     if text.startswith(config.command_prompt):
-        await handle_command(bot, ChatEnvType.group, event, chat_to_me, llm_client_holder)
+        return # Ignore command message
     else:
         await handle_llm_chat(bot, ChatEnvType.group, event, chat_to_me, llm_client_holder)
 
@@ -45,7 +45,7 @@ async def handle_chat_to_me(bot: Bot, event: GroupMessageEvent):
 async def handle_chat_group(bot: Bot, event: GroupMessageEvent):
     text = event.get_message().extract_plain_text().lstrip()
     if text.startswith(config.command_prompt):
-        await handle_command(bot, ChatEnvType.group, event, chat, llm_client_holder)
+        return # Ignore command message
     elif text.startswith("xiaoruo") or text.startswith("小若"):
         await handle_llm_chat(bot, ChatEnvType.group, event, chat, llm_client_holder)
     else:
@@ -62,6 +62,6 @@ async def handle_chat_private(bot: Bot, event: PrivateMessageEvent):
     text = event.get_message().extract_plain_text()
     logger.info(f"Private[{event.sender.user_id}({event.sender.nickname})] message({event.message_id}): " + text)
     if text.startswith(config.command_prompt):
-        await handle_command(bot, ChatEnvType.private, event, chat, llm_client_holder)
+        return # Ignore command message
     else:
         await handle_llm_chat(bot, ChatEnvType.private, event, chat, llm_client_holder)
