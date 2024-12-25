@@ -21,10 +21,10 @@ async def handle_llm_chat(
 ):
     if env == ChatEnvType.group:
         logger.info(f"Group[{event.group_id}] message({event.message_id}) pass to llm.")
-        current_llm = await llm_client_holder.get_group_llm(event.group_id)
+        current_llm = llm_client_holder.get_group_llm(event.group_id)
     elif env == ChatEnvType.private:
         logger.info(f"Private[{event.sender.user_id}({event.sender.nickname})] message({event.message_id}) pass to llm.")
-        current_llm = await llm_client_holder.get_private_llm(event.user_id)
+        current_llm = llm_client_holder.get_private_llm(event.user_id)
     else:
         raise ValueError(f"Invalid chat environment: {env}.")
 
